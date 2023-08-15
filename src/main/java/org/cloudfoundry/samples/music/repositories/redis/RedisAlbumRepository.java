@@ -2,15 +2,20 @@ package org.cloudfoundry.samples.music.repositories.redis;
 
 import org.cloudfoundry.samples.music.domain.Album;
 import org.cloudfoundry.samples.music.domain.RandomIdGenerator;
+
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@Repository
+@Profile("redis")
 public class RedisAlbumRepository implements CrudRepository<Album, String> {
     public static final String ALBUMS_KEY = "albums";
 
@@ -47,7 +52,7 @@ public class RedisAlbumRepository implements CrudRepository<Album, String> {
 
     @Override
     public Optional<Album> findById(String id) {
-        return Optional.of(hashOps.get(ALBUMS_KEY, id));
+        return Optional.ofNullable(hashOps.get(ALBUMS_KEY, id));
     }
 
     @Override
@@ -90,6 +95,13 @@ public class RedisAlbumRepository implements CrudRepository<Album, String> {
     @Override
     public void deleteAll() {
         Set<String> ids = hashOps.keys(ALBUMS_KEY);
+        for (String id : ids) {
+            deleteById(id);
+        }
+    }
+
+    @Override
+    public void deleteAllById(Iterable<? extends String> ids) {
         for (String id : ids) {
             deleteById(id);
         }
